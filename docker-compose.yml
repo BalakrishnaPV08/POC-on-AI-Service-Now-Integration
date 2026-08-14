@@ -1,0 +1,132 @@
+version: "3.9"
+
+services:
+
+  # ==========================================================
+  # PostgreSQL
+  # ==========================================================
+
+  postgres:
+    image: postgres:16
+
+    container_name: tieto-postgres
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: tietopocdb
+      POSTGRES_USER: tieto
+      POSTGRES_PASSWORD: tieto@123
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U tieto -d tietopocdb"
+        ]
+
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  # ==========================================================
+  # RabbitMQ
+  # ==========================================================
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+
+    container_name: tieto-rabbitmq
+
+    restart: unless-stopped
+
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+    ports:
+      # RabbitMQ application port
+      - "5672:5672"
+
+      # RabbitMQ Management UI
+      - "15672:15672"
+
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "rabbitmq-diagnostics",
+          "-q",
+          "ping"
+        ]
+
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  # ==========================================================
+  # Spring Boot Application
+  # ==========================================================
+
+  poc-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: tieto-poc-app
+
+    restart: unless-stopped
+
+    depends_on:
+
+      postgres:
+        condition: service_healthy
+
+      rabbitmq:
+        condition: service_healthy
+
+    environment:
+
+      # PostgreSQL
+      POSTGRES_HOST: postgresql
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: tietopocdb
+      POSTGRES_USER: tieto
+      POSTGRES_PASS: tieto@123
+
+      # RabbitMQ
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASS: guest
+
+      # JVM
+      JAVA_OPTS: "-Xms256m -Xmx512m"
+
+    ports:
+      - "8080:8080"
+
+    volumes:
+      - ./logs:/app/logs
+
+
+# ============================================================
+# Persistent Volumes
+# ============================================================
+
+volumes:
+
+  postgres_data:
+
+  rabbitmq_data:

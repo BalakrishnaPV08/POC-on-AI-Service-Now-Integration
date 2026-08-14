@@ -1,0 +1,95 @@
+spring:
+  application:
+    name: ai-servicenow
+
+  # ============================================================
+  # PostgreSQL Database Configuration
+  # ============================================================
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tietopocdb
+    username: tieto
+    password: tieto@123
+    driver-class-name: org.postgresql.Driver
+
+  # ============================================================
+  # JPA / Hibernate Configuration
+  # ============================================================
+  jpa:
+    hibernate:
+      ddl-auto: update
+    defer-datasource-initialization: true
+
+    show-sql: false
+
+    properties:
+      hibernate:
+        format_sql: true
+
+  # ============================================================
+  # RabbitMQ Configuration
+  # ============================================================
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
+
+    listener:
+      simple:
+        acknowledge-mode: auto
+        default-requeue-rejected: false
+
+        retry:
+          enabled: true
+          initial-interval: 1000
+          max-attempts: 3
+          multiplier: 2
+          max-interval: 10000
+
+  # ============================================================
+  # SQL Initialization
+  # ============================================================
+  sql:
+    init:
+      mode: always
+
+
+# ==============================================================
+# Server Configuration
+# ==============================================================
+server:
+  port: 8080
+
+
+# ==============================================================
+# Actuator / Monitoring
+# ==============================================================
+management:
+
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers
+
+  endpoint:
+    health:
+      show-details: always
+
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+    export:
+      prometheus:
+        enabled: true
+
+
+# ==============================================================
+# Logging
+# ==============================================================
+logging:
+
+  level:
+    root: INFO
+    com.tieto.poc: INFO
+    org.springframework.amqp: INFO
