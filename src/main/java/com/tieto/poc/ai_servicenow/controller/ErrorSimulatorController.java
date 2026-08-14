@@ -1,5 +1,9 @@
 package com.tieto.poc.ai_servicenow.controller;
 
+import com.tieto.poc.ai_servicenow.exception.OptimisticLockSimulationException;
+import com.tieto.poc.ai_servicenow.exception.OrderNotFoundException;
+import com.tieto.poc.ai_servicenow.model.Order;
+import com.tieto.poc.ai_servicenow.service.AuditService;
 import com.tieto.poc.ai_servicenow.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,27 +19,28 @@ import java.util.Map;
 public class ErrorSimulatorController {
 
     private final OrderService orderService;
+    private final AuditService auditService;
 
 
     // =========================================================
     // Scenario #1 - Duplicate Order
     // =========================================================
-
-    @PostMapping("/duplicate-order")
-    public ResponseEntity<Map<String, String>> duplicateOrder() {
+    @PostMapping("/duplicate-order/{orderId}")
+    public ResponseEntity<Map<String, String>> duplicateOrder(
+            @PathVariable String orderId) {
 
         log.warn(
-                "[SIMULATOR] Triggering Scenario #1 - Duplicate Order"
+                "[SIMULATOR] Triggering Scenario #1 - Duplicate Order orderId={}",
+                orderId
         );
 
-        orderService.triggerDuplicateOrder();
+        orderService.triggerDuplicateOrder(orderId);
 
         return ResponseEntity.ok(
                 Map.of(
-                        "scenario",
-                        "1",
-                        "message",
-                        "Duplicate order scenario triggered"
+                        "scenario", "1",
+                        "message", "Duplicate order scenario triggered",
+                        "orderId", orderId
                 )
         );
     }
@@ -89,31 +94,29 @@ public class ErrorSimulatorController {
     }
 
 
-    // =========================================================
-    // Scenario #5 - Optimistic Lock
-    // =========================================================
+// =========================================================
+// SCENARIO #5
+// Optimistic Lock
+// =========================================================
 
-    @PostMapping("/optimistic-lock/{orderId}")
-    public ResponseEntity<Map<String, String>> optimisticLock(
-            @PathVariable String orderId) {
+    public void triggerOptimisticLock(String orderId) {
 
-        log.warn(
-                "[SIMULATOR] Triggering Scenario #5 - " +
-                        "Optimistic Lock orderId={}",
+        log.error(
+                "[SCENARIO-5] [ERROR_CODE=OPTIMISTIC_LOCK] " +
+                        "Triggering optimistic lock scenario orderId={}",
                 orderId
         );
 
-        orderService.triggerOptimisticLock(orderId);
+        auditService.saveAudit(
+                orderId,
+                "OPTIMISTIC_LOCK",
+                "ERROR",
+                "Optimistic locking conflict simulated for order",
+                "OPTIMISTIC_LOCK"
+        );
 
-        return ResponseEntity.ok(
-                Map.of(
-                        "scenario",
-                        "5",
-                        "message",
-                        "Optimistic lock scenario triggered",
-                        "orderId",
-                        orderId
-                )
+        throw new OptimisticLockSimulationException(
+                "Optimistic locking conflict for orderId=" + orderId
         );
     }
 

@@ -2,6 +2,8 @@ package com.tieto.poc.ai_servicenow.service;
 
 import com.tieto.poc.ai_servicenow.dto.OrderMessage;
 import com.tieto.poc.ai_servicenow.dto.OrderRequest;
+import com.tieto.poc.ai_servicenow.exception.DuplicateOrderException;
+import com.tieto.poc.ai_servicenow.exception.OrderNotFoundException;
 import com.tieto.poc.ai_servicenow.messaging.OrderProducer;
 import com.tieto.poc.ai_servicenow.model.AuditLog;
 import com.tieto.poc.ai_servicenow.model.Order;
@@ -18,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
@@ -28,6 +31,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final AuditLogRepository auditLogRepository;
     private final OrderProducer orderProducer;
+    private final AuditService auditService;
 
     private static final AtomicInteger ORDER_COUNTER =
             new AtomicInteger(0);
@@ -169,70 +173,60 @@ public class OrderService {
     // Duplicate Order / Database Constraint Error
     // =========================================================
 
-    @Transactional
-    public void triggerDuplicateOrder() {
+    // =========================================================
+// SCENARIO #1
+// Duplicate Order
+// =========================================================
 
-        String orderId = "DUPLICATE-ORDER-001";
+    public void triggerDuplicateOrder(String orderId) {
 
-        log.error(
-                "[SCENARIO-1] " +
-                        "[ERROR_CODE=DUPLICATE_ORDER] " +
-                        "Triggering duplicate order error orderId={}",
+        log.warn(
+                "[SCENARIO-1] [ERROR_CODE=DUPLICATE_ORDER] " +
+                        "Checking existing order orderId={}",
                 orderId
         );
 
-        Order firstOrder = Order.builder()
-                .orderId(orderId)
-                .customerId("DUP-CUSTOMER-001")
-                .customerName("Duplicate Customer")
-                .productCode("DUP-PRODUCT")
-                .quantity(1)
-                .unitPrice(BigDecimal.TEN)
-                .totalAmount(BigDecimal.TEN)
-                .priority("NORMAL")
-                .status(Order.OrderStatus.PENDING)
-                .build();
+        Optional<Order> existingOrder =
+                orderRepository.findByOrderId(orderId);
 
-        orderRepository.saveAndFlush(firstOrder);
-
-        Order duplicateOrder = Order.builder()
-                .orderId(orderId)
-                .customerId("DUP-CUSTOMER-002")
-                .customerName("Duplicate Customer")
-                .productCode("DUP-PRODUCT")
-                .quantity(1)
-                .unitPrice(BigDecimal.TEN)
-                .totalAmount(BigDecimal.TEN)
-                .priority("NORMAL")
-                .status(Order.OrderStatus.PENDING)
-                .build();
-
-        try {
-
-            orderRepository.saveAndFlush(
-                    duplicateOrder
-            );
-
-        } catch (DataIntegrityViolationException ex) {
+        if (existingOrder.isPresent()) {
 
             log.error(
-                    "[SCENARIO-1] " +
-                            "[ERROR_CODE=DUPLICATE_ORDER] " +
-                            "Duplicate orderId={}",
-                    orderId,
-                    ex
+                    "[SCENARIO-1] [ERROR_CODE=DUPLICATE_ORDER] " +
+                            "Order already exists orderId={}",
+                    orderId
             );
 
-            saveAudit(
+            auditService.saveAudit(
                     orderId,
                     "DUPLICATE_ORDER",
                     "ERROR",
-                    "Duplicate order ID detected",
+                    "Order already exists: " + orderId,
                     "DUPLICATE_ORDER"
             );
 
-            throw ex;
+            throw new DuplicateOrderException(
+                    "Order already exists: " + orderId
+            );
         }
+
+        log.error(
+                "[SCENARIO-1] [ERROR_CODE=ORDER_NOT_FOUND] " +
+                        "Order does not exist orderId={}",
+                orderId
+        );
+
+        auditService.saveAudit(
+                orderId,
+                "DUPLICATE_ORDER",
+                "ERROR",
+                "Order does not exist: " + orderId,
+                "ORDER_NOT_FOUND"
+        );
+
+        throw new OrderNotFoundException(
+                "Order does not exist: " + orderId
+        );
     }
 
 

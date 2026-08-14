@@ -39,6 +39,47 @@ public class GlobalExceptionHandler {
 
 
     // =========================================================
+    // Duplicate Order
+    // =========================================================
+
+    @ExceptionHandler(DuplicateOrderException.class)
+    public ResponseEntity<Map<String, Object>> handleDuplicateOrder(
+            DuplicateOrderException ex) {
+
+        log.error(
+                "[ERROR_CODE=DUPLICATE_ORDER] {}",
+                ex.getMessage()
+        );
+
+        return buildResponse(
+                HttpStatus.CONFLICT,
+                "DUPLICATE_ORDER",
+                ex.getMessage()
+        );
+    }
+
+    // =========================================================
+// Optimistic Lock Error
+// =========================================================
+
+    @ExceptionHandler(OptimisticLockSimulationException.class)
+    public ResponseEntity<Map<String, Object>> handleOptimisticLock(
+            OptimisticLockSimulationException ex) {
+
+        log.error(
+                "[ERROR_CODE=OPTIMISTIC_LOCK] {}",
+                ex.getMessage()
+        );
+
+        return buildResponse(
+                HttpStatus.CONFLICT,
+                "OPTIMISTIC_LOCK",
+                ex.getMessage()
+        );
+    }
+
+
+    // =========================================================
     // Validation Error
     // =========================================================
 
