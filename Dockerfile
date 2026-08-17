@@ -23,7 +23,8 @@ FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
-COPY --from=build /app/target/ai-servicenow-1.0.0-SNAPSHOT.jar app.jar
+#COPY --from=build /app/target/ai-servicenow-1.0.0-SNAPSHOT.jar app.jar
+COPY --from=build /app/target/*.jar app.jar
 
 # Application port
 EXPOSE 8080
