@@ -1,0 +1,50 @@
+name: Build and Deploy to Azure Container Apps
+
+on:
+  push:
+    branches:
+      - main  # Change to master if your default branch is named master
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17' # Change to '21' if the Spring Boot app uses Java 21
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Build Spring Boot Jar
+      run: ./mvnw clean package -DskipTests
+
+    - name: Log in to Azure Container Registry
+      uses: azure/docker-login@v2
+      with:
+        login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+
+    - name: Build and Push Docker Image
+      run: |
+        docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/orderservice:${{ github.sha }} .
+        docker push ${{ secrets.ACR_LOGIN_SERVER }}/orderservice:${{ github.sha }}
+
+    - name: Log in to Azure CLI using Registry Credentials
+      uses: azure/login@v2
+      with:
+        creds: '{"clientId":"${{ secrets.ACR_USERNAME }}","clientSecret":"${{ secrets.ACR_PASSWORD }}","subscriptionId":"9cbc7c12-fd95-48b4-b18d-5a17b106d58b","tenantId":"your-tenant-id"}'
+        allow-no-subscriptions: true
+
+    - name: Deploy Image to Azure Container Apps
+      uses: azure/container-apps-deploy-action@v2
+      with:
+        acrName: ${{ secrets.ACR_USERNAME }}
+        containerAppName: orderservice
+        resourceGroup: rg-demo
+        imageToDeploy: ${{ secrets.ACR_LOGIN_SERVER }}/orderservice:${{ github.sha }}
+        targetPort: 8080
