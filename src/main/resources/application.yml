@@ -2,15 +2,6 @@ spring:
   application:
     name: ai-servicenow
 
-  ai:
-    azure:
-      openai:
-        endpoint: ${AZURE_OPENAI_ENDPOINT:}
-        api-key: ${AZURE_OPENAI_API_KEY:}
-        chat:
-          options:
-            model: ${AZURE_OPENAI_MODEL:gpt-4o-mini}
-
   # ============================================================
   # PostgreSQL Database Configuration
   # ============================================================
@@ -61,27 +52,32 @@ spring:
 # ==============================================================
 # Azure OpenAI / external integrations
 # ==============================================================
-azure:
-  openai:
-    endpoint: ${AZURE_OPENAI_ENDPOINT:}
-    api-key: ${AZURE_OPENAI_API_KEY:}
-    model: ${AZURE_OPENAI_MODEL:gpt-4o-mini}
+  ai:
+    azure:
+      openai:
+    # Default to the local WireMock mock used for development/testing when
+    # AZURE_OPENAI_ENDPOINT is not set. When running the app in Docker Compose
+    # use 'http://wiremock:8080'. If running the app on the host and WireMock
+    # is also running on the host, set AZURE_OPENAI_ENDPOINT to 'http://localhost:8081'.
+        endpoint: ${AZURE_OPENAI_ENDPOINT:http://wiremock:8080}
+        api-key: ${AZURE_OPENAI_API_KEY:mock-key}
+        model: ${AZURE_OPENAI_MODEL:gpt-4o-mini}
 
 # ==============================================================
 # Dynatrace configuration
 # ==============================================================
 dynatrace:
-  api-url: ${DT_API_URL:}
-  api-token: ${DT_API_TOKEN:}
-  webhook-auth-token: ${DT_WEBHOOK_AUTH_TOKEN:}
+  api-url: ${DT_API_URL:https://tpa39707.live.dynatrace.com}
+  api-token: ${DT_API_TOKEN:dt0s16.NHGNR3EY.5CVFBX7VYFTGX7VHIQCMKLXB5AE245PSXHDBE6RCPEYKU7I46KFVFXF2LSR6WPYY}
+  webhook-auth-token: ${DT_WEBHOOK_AUTH_TOKEN:UXAEs8vS5MwpDwXuTiUb31SdFTGe5P7BCusFyydnZdw}
 
 # ==============================================================
 # ServiceNow configuration
 # ==============================================================
 servicenow:
-  instance-url: ${SN_INSTANCE_URL:}
-  username: ${SN_USERNAME:}
-  password: ${SN_PASSWORD:}
+  instance-url: ${SN_INSTANCE_URL:https://dev316191.service-now.com}
+  username: ${SN_USERNAME:admin}
+  password: ${SN_PASSWORD:%a/aRTTkW87d}
 
 # ==============================================================
 # Server Configuration
