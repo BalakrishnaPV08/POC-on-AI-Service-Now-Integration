@@ -2,19 +2,22 @@ spring:
   application:
     name: ai-servicenow
 
+  ai:
+    azure:
+      openai:
+        endpoint: ${AZURE_OPENAI_ENDPOINT:}
+        api-key: ${AZURE_OPENAI_API_KEY:}
+        chat:
+          options:
+            model: ${AZURE_OPENAI_MODEL:gpt-4o-mini}
+
   # ============================================================
   # PostgreSQL Database Configuration
   # ============================================================
-  #datasource:
-    #url: jdbc:postgresql://localhost:5432/tietopocdb
-    #username: tieto
-    #password: tieto@123
-    #driver-class-name: org.postgresql.Driver
-
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/tietopocdb}
+    username: ${SPRING_DATASOURCE_USERNAME:tieto}
+    password: ${SPRING_DATASOURCE_PASSWORD:tieto@123}
     driver-class-name: org.postgresql.Driver
 
   # ============================================================
@@ -24,9 +27,7 @@ spring:
     hibernate:
       ddl-auto: update
     defer-datasource-initialization: true
-
     show-sql: false
-
     properties:
       hibernate:
         format_sql: true
@@ -39,12 +40,10 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:guest}
     password: ${RABBITMQ_PASS:guest}
-
     listener:
       simple:
         acknowledge-mode: auto
         default-requeue-rejected: false
-
         retry:
           enabled: true
           initial-interval: 1000
@@ -59,6 +58,30 @@ spring:
     init:
       mode: always
 
+# ==============================================================
+# Azure OpenAI / external integrations
+# ==============================================================
+azure:
+  openai:
+    endpoint: ${AZURE_OPENAI_ENDPOINT:}
+    api-key: ${AZURE_OPENAI_API_KEY:}
+    model: ${AZURE_OPENAI_MODEL:gpt-4o-mini}
+
+# ==============================================================
+# Dynatrace configuration
+# ==============================================================
+dynatrace:
+  api-url: ${DT_API_URL:}
+  api-token: ${DT_API_TOKEN:}
+  webhook-auth-token: ${DT_WEBHOOK_AUTH_TOKEN:}
+
+# ==============================================================
+# ServiceNow configuration
+# ==============================================================
+servicenow:
+  instance-url: ${SN_INSTANCE_URL:}
+  username: ${SN_USERNAME:}
+  password: ${SN_PASSWORD:}
 
 # ==============================================================
 # Server Configuration
@@ -66,35 +89,28 @@ spring:
 server:
   port: 8080
 
-
 # ==============================================================
 # Actuator / Monitoring
 # ==============================================================
 management:
-
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus,loggers
-
   endpoint:
     health:
       show-details: always
-
   metrics:
     tags:
       application: ${spring.application.name}
-
     export:
       prometheus:
         enabled: true
-
 
 # ==============================================================
 # Logging
 # ==============================================================
 logging:
-
   level:
     root: INFO
     com.tieto.poc: INFO

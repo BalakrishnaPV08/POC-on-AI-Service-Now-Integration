@@ -98,18 +98,31 @@ services:
 
     environment:
 
-      # PostgreSQL
-      POSTGRES_HOST: postgresql
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: tietopocdb
-      POSTGRES_USER: tieto
-      POSTGRES_PASS: tieto@123
+      # Application datasource
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tietopocdb
+      SPRING_DATASOURCE_USERNAME: tieto
+      SPRING_DATASOURCE_PASSWORD: tieto@123
 
       # RabbitMQ
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_USER: guest
       RABBITMQ_PASS: guest
+
+      # Azure OpenAI
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+      AZURE_OPENAI_MODEL: ${AZURE_OPENAI_MODEL:-gpt-4o-mini}
+
+      # Dynatrace
+      DT_API_URL: ${DT_API_URL:-}
+      DT_API_TOKEN: ${DT_API_TOKEN:-}
+      DT_WEBHOOK_AUTH_TOKEN: ${DT_WEBHOOK_AUTH_TOKEN:-}
+
+      # ServiceNow
+      SN_INSTANCE_URL: ${SN_INSTANCE_URL:-}
+      SN_USERNAME: ${SN_USERNAME:-}
+      SN_PASSWORD: ${SN_PASSWORD:-}
 
       # JVM
       JAVA_OPTS: "-Xms256m -Xmx512m"
