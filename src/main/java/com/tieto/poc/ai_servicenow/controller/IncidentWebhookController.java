@@ -1,5 +1,6 @@
 package com.tieto.poc.ai_servicenow.controller;
 
+import com.tieto.poc.ai_servicenow.dto.DynatraceCloudEvent;
 import com.tieto.poc.ai_servicenow.dto.DynatraceProblemEvent;
 import com.tieto.poc.ai_servicenow.service.ApplicationOperationsAgent;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ public class IncidentWebhookController {
 
     @PostMapping("/process-incident")
     public ResponseEntity<String> processIncident(@RequestHeader(value = "X-Dynatrace-Problem-Authentication", required = false) String authHeader,
-                                                  @RequestBody DynatraceProblemEvent event) {
+                                                  @RequestBody DynatraceCloudEvent event) {
         if (webhookAuthToken != null && !webhookAuthToken.isEmpty()) {
             if (authHeader == null || !authHeader.equals(webhookAuthToken)) {
                 log.warn("Invalid Dynatrace webhook auth header");
@@ -32,11 +33,13 @@ public class IncidentWebhookController {
         }
 
         try {
-            agent.processIncident(event);
+            DynatraceProblemEvent normalized = event.toProblemEvent();
+            log.info("Normalized Dynatrace event: problemId={}, status={}, eventType={}, affectedEntity={}",
+                    normalized.getProblemId(), normalized.getStatus(), normalized.getEventType(), normalized.getAffectedEntity());
+            agent.processIncident(normalized);
             return ResponseEntity.ok("Accepted");
         } catch (Exception ex) {
             log.error("Failed to process incident", ex);
-            // Allow Dynatrace to retry
             return ResponseEntity.status(500).body("Processing failed");
         }
     }

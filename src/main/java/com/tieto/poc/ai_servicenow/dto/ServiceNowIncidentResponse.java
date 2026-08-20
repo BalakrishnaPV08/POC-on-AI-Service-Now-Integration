@@ -6,4 +6,5 @@ import lombok.Data;
 public class ServiceNowIncidentResponse {
     private String sysId;
     private String incidentNumber;
+    private String rawJson;
 }

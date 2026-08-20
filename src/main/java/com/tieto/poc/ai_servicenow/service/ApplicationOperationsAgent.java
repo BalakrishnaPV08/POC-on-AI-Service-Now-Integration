@@ -51,6 +51,7 @@ public class ApplicationOperationsAgent {
         req.setCorrelation_id(problemId);
 
         ServiceNowIncidentResponse created = serviceNowService.createIncident(req);
-        log.info("[AOA] Incident {} created for DT problem {}", created.getIncidentNumber(), problemId);
+        log.info("[AOA] Incident {} (sys_id={}) created for DT problem {}", created.getIncidentNumber(), created.getSysId(), problemId);
+        log.debug("[AOA] Created incident raw response: {}", created.getRawJson());
     }
 }

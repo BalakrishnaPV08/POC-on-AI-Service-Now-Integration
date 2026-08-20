@@ -64,12 +64,12 @@ spring:
         model: ${AZURE_OPENAI_MODEL:gpt-4o-mini}
 
 # ==============================================================
-# Dynatrace configuration
+# Dynatrace configuration  UXAEs8vS5MwpDwXuTiUb31SdFTGe5P7BCusFyydnZdw
 # ==============================================================
 dynatrace:
   api-url: ${DT_API_URL:https://tpa39707.live.dynatrace.com}
   api-token: ${DT_API_TOKEN:dt0s16.NHGNR3EY.5CVFBX7VYFTGX7VHIQCMKLXB5AE245PSXHDBE6RCPEYKU7I46KFVFXF2LSR6WPYY}
-  webhook-auth-token: ${DT_WEBHOOK_AUTH_TOKEN:UXAEs8vS5MwpDwXuTiUb31SdFTGe5P7BCusFyydnZdw}
+  webhook-auth-token: ${DT_WEBHOOK_AUTH_TOKEN:test-token}
 
 # ==============================================================
 # ServiceNow configuration
@@ -77,7 +77,7 @@ dynatrace:
 servicenow:
   instance-url: ${SN_INSTANCE_URL:https://dev316191.service-now.com}
   username: ${SN_USERNAME:admin}
-  password: ${SN_PASSWORD:%a/aRTTkW87d}
+  password: ${SN_PASSWORD:y3W+jvQhI4Q-}
 
 # ==============================================================
 # Server Configuration

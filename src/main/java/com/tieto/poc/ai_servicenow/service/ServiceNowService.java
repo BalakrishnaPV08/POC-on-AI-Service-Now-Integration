@@ -57,12 +57,34 @@ public class ServiceNowService {
                 headers.set(HttpHeaders.AUTHORIZATION, "Basic " + b64);
             }
             HttpEntity<ServiceNowIncidentRequest> entity = new HttpEntity<>(request, headers);
-            // For simplicity, don't attempt to deserialize the full SN response in this scaffold
-            String resp = restTemplate.postForObject(url, entity, String.class);
+            // Call ServiceNow and capture full response
+            org.springframework.http.ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            String resp = response.getBody();
+
             ServiceNowIncidentResponse r = new ServiceNowIncidentResponse();
-            r.setSysId("created-sysid");
-            r.setIncidentNumber("INC-created");
-            log.info("[AOA] ServiceNow incident created (response len={})", resp != null ? resp.length() : 0);
+            if (resp != null && !resp.isEmpty()) {
+                try {
+                    com.fasterxml.jackson.databind.ObjectMapper om = new com.fasterxml.jackson.databind.ObjectMapper();
+                    com.fasterxml.jackson.databind.JsonNode root = om.readTree(resp);
+                    com.fasterxml.jackson.databind.JsonNode result = root.path("result");
+                    if (!result.isMissingNode()) {
+                        String number = result.path("number").asText(null);
+                        String sysId = result.path("sys_id").asText(null);
+                        if (number != null) r.setIncidentNumber(number);
+                        if (sysId != null) r.setSysId(sysId);
+                    }
+                    r.setRawJson(resp);
+                } catch (Exception parseEx) {
+                    log.warn("Failed to parse ServiceNow response JSON", parseEx);
+                }
+            }
+
+            // Fallback defaults if parsing didn't set values
+            if (r.getIncidentNumber() == null) r.setIncidentNumber("INC-created");
+            if (r.getSysId() == null) r.setSysId("created-sysid");
+
+            log.info("[AOA] ServiceNow incident created (number={}, sys_id={})", r.getIncidentNumber(), r.getSysId());
+            log.debug("[AOA] ServiceNow create response: {}", r.getRawJson());
             return r;
         } catch (Exception ex) {
             log.error("Failed to create ServiceNow incident", ex);

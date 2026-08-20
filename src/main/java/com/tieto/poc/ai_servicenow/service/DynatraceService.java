@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -29,12 +31,12 @@ public class DynatraceService {
     private String dtApiToken;
 
     public DynatraceProblemDetail getProblemById(String problemId) {
-        // Minimal safe implementation: attempt call if configured, otherwise return stub
-        if (dtApiUrl == null || dtApiUrl.isEmpty()) {
+            // Require both URL and token for live calls; otherwise return a stub
+            if (dtApiUrl == null || dtApiUrl.isEmpty() || dtApiToken == null || dtApiToken.isEmpty()) {
             DynatraceProblemDetail d = new DynatraceProblemDetail();
             d.setId(problemId);
             d.setTitle("Stub problem title");
-            d.setDescription("No Dynatrace configured; this is a stub.");
+                d.setDescription("Dynatrace not configured or missing token; returning stub.");
             d.setAffectedEntityId("unknown");
             d.setRawJson("{}");
             return d;
@@ -47,11 +49,11 @@ public class DynatraceService {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-            if (dtApiToken != null && !dtApiToken.isEmpty()) {
                 headers.set("Authorization", "Api-Token " + dtApiToken);
-            }
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-            String resp = restTemplate.getForObject(url, String.class, entity);
+
+                HttpEntity<Void> entity = new HttpEntity<>(headers);
+                ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+                String resp = response.getBody();
 
             DynatraceProblemDetail d = new DynatraceProblemDetail();
             d.setId(problemId);
