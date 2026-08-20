@@ -54,4 +54,33 @@ public class ApplicationOperationsAgent {
         log.info("[AOA] Incident {} (sys_id={}) created for DT problem {}", created.getIncidentNumber(), created.getSysId(), problemId);
         log.debug("[AOA] Created incident raw response: {}", created.getRawJson());
     }
+
+    public void processExceptionIncident(String errorCode, String exceptionClass, String message, String stackTrace) {
+        String correlationId = "app-exception-" + java.util.UUID.randomUUID();
+
+        EnrichedIncident enriched = new EnrichedIncident();
+        enriched.setShortDescription(errorCode + " - " + exceptionClass);
+        StringBuilder description = new StringBuilder();
+        if (message != null && !message.isEmpty()) {
+            description.append(message).append(System.lineSeparator());
+        }
+        if (stackTrace != null && !stackTrace.isEmpty()) {
+            description.append(System.lineSeparator()).append(stackTrace);
+        }
+        enriched.setDescription(description.toString());
+        enriched.setUrgency(2);
+        enriched.setImpact(2);
+        enriched.setCategory("application");
+
+        ServiceNowIncidentRequest req = new ServiceNowIncidentRequest();
+        req.setShort_description(enriched.getShortDescription());
+        req.setDescription(enriched.getDescription());
+        req.setUrgency(enriched.getUrgency());
+        req.setImpact(enriched.getImpact());
+        req.setCategory(enriched.getCategory());
+        req.setCorrelation_id(correlationId);
+
+        ServiceNowIncidentResponse created = serviceNowService.createIncident(req);
+        log.info("[AOA] Incident {} (sys_id={}) created from application exception {}", created.getIncidentNumber(), created.getSysId(), errorCode);
+    }
 }

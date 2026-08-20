@@ -1,5 +1,6 @@
 package com.tieto.poc.ai_servicenow.exception;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -15,7 +16,11 @@ import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final com.tieto.poc.ai_servicenow.service.DynatraceEventService dynatraceEventService;
+    private final com.tieto.poc.ai_servicenow.service.ApplicationOperationsAgent applicationOperationsAgent;
 
     // =========================================================
     // Order Not Found
@@ -29,6 +34,8 @@ public class GlobalExceptionHandler {
                 "[ERROR_CODE=ORDER_NOT_FOUND] {}",
                 ex.getMessage()
         );
+
+        sendExceptionToDynatrace(ex, "ORDER_NOT_FOUND");
 
         return buildResponse(
                 HttpStatus.NOT_FOUND,
@@ -51,6 +58,8 @@ public class GlobalExceptionHandler {
                 ex.getMessage()
         );
 
+        sendExceptionToDynatrace(ex, "DUPLICATE_ORDER");
+
         return buildResponse(
                 HttpStatus.CONFLICT,
                 "DUPLICATE_ORDER",
@@ -70,6 +79,8 @@ public class GlobalExceptionHandler {
                 "[ERROR_CODE=OPTIMISTIC_LOCK] {}",
                 ex.getMessage()
         );
+
+        sendExceptionToDynatrace(ex, "OPTIMISTIC_LOCK");
 
         return buildResponse(
                 HttpStatus.CONFLICT,
@@ -91,6 +102,8 @@ public class GlobalExceptionHandler {
                 "[ERROR_CODE=VALIDATION_ERROR] " +
                         "Request validation failed"
         );
+
+        sendExceptionToDynatrace(ex, "VALIDATION_ERROR");
 
         Map<String, String> validationErrors =
                 new LinkedHashMap<>();
@@ -152,6 +165,8 @@ public class GlobalExceptionHandler {
                 ex
         );
 
+        sendExceptionToDynatrace(ex, "DATABASE_INTEGRITY_ERROR");
+
         return buildResponse(
                 HttpStatus.CONFLICT,
                 "DATABASE_INTEGRITY_ERROR",
@@ -174,6 +189,8 @@ public class GlobalExceptionHandler {
                 ex
         );
 
+        sendExceptionToDynatrace(ex, "DATABASE_CONNECTION_FAILURE");
+
         return buildResponse(
                 HttpStatus.SERVICE_UNAVAILABLE,
                 "DATABASE_CONNECTION_FAILURE",
@@ -194,6 +211,8 @@ public class GlobalExceptionHandler {
                 "[ERROR_CODE=INVALID_REQUEST] {}",
                 ex.getMessage()
         );
+
+        sendExceptionToDynatrace(ex, "INVALID_REQUEST");
 
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
@@ -217,11 +236,38 @@ public class GlobalExceptionHandler {
                 ex
         );
 
+        sendExceptionToDynatrace(ex, "APPLICATION_ERROR");
+
         return buildResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "APPLICATION_ERROR",
                 "An unexpected error occurred"
         );
+    }
+
+    private void sendExceptionToDynatrace(Exception ex, String errorCode) {
+        try {
+            java.util.Map<String, Object> props = new java.util.LinkedHashMap<>();
+            props.put("message", ex.getMessage());
+            props.put("exception", ex.getClass().getName());
+            props.put("errorCode", errorCode);
+            java.io.StringWriter sw = new java.io.StringWriter();
+            ex.printStackTrace(new java.io.PrintWriter(sw));
+            String stack = sw.toString();
+            props.put("stacktrace", stack.length() > 4000 ? stack.substring(0, 4000) + "..." : stack);
+            props.put("timestamp", java.time.Instant.now().toString());
+
+            dynatraceEventService.sendEvent(props, "Application Exception: " + ex.getClass().getSimpleName());
+
+            applicationOperationsAgent.processExceptionIncident(
+                    errorCode,
+                    ex.getClass().getName(),
+                    ex.getMessage(),
+                    stack
+            );
+        } catch (Exception e) {
+            log.warn("Failed to forward exception to Dynatrace or create incident", e);
+        }
     }
 
 

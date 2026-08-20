@@ -68,8 +68,7 @@ spring:
 # ==============================================================
 dynatrace:
   api-url: ${DT_API_URL:https://tpa39707.live.dynatrace.com}
-  api-token: ${DT_API_TOKEN:dt0s16.NHGNR3EY.5CVFBX7VYFTGX7VHIQCMKLXB5AE245PSXHDBE6RCPEYKU7I46KFVFXF2LSR6WPYY}
-  webhook-auth-token: ${DT_WEBHOOK_AUTH_TOKEN:test-token}
+  api-token: ${DT_API_TOKEN:dt0c01.6C55J7SA55KE5QH4SHHETIZJ.YLUXF4YHGQ3HN6ZB4NVD7T6ULZEM5IEMGWRQMGIRYZQH5TABOTBSE4NI6MYYGNHQ}
 
 # ==============================================================
 # ServiceNow configuration

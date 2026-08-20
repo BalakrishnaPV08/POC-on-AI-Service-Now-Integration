@@ -84,4 +84,25 @@ public class DynatraceService {
         // For simplicity don't call logs API in this scaffold
         return List.of();
     }
+
+    public String getProblems(String from, int pageSize) {
+        if (dtApiUrl == null || dtApiUrl.isEmpty() || dtApiToken == null || dtApiToken.isEmpty()) {
+            return "";
+        }
+        try {
+            String url = dtApiUrl;
+            if (!url.endsWith("/")) url += "/";
+            url += "api/v2/problems?from=" + from + "&pageSize=" + pageSize;
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+            headers.set("Authorization", "Api-Token " + dtApiToken);
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            return response.getBody() != null ? response.getBody() : "";
+        } catch (Exception ex) {
+            log.warn("Failed to query Dynatrace problems", ex);
+            return "";
+        }
+    }
 }
