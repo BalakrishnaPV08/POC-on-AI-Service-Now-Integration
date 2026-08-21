@@ -125,8 +125,8 @@ services:
       RABBITMQ_PASS: guest
 
       # Azure OpenAI
-      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-}
-      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT:-http://wiremock:8080}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY:-mock-key}
       AZURE_OPENAI_MODEL: ${AZURE_OPENAI_MODEL:-gpt-4o-mini}
 
       # Dynatrace

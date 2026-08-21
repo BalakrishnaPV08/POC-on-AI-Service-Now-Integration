@@ -7,8 +7,8 @@ spring:
   # ============================================================
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/tietopocdb}
-    username: ${SPRING_DATASOURCE_USERNAME:tieto}
-    password: ${SPRING_DATASOURCE_PASSWORD:tieto@123}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:utkrisht16}
     driver-class-name: org.postgresql.Driver
 
   # ============================================================
@@ -55,11 +55,9 @@ spring:
   ai:
     azure:
       openai:
-    # Default to the local WireMock mock used for development/testing when
-    # AZURE_OPENAI_ENDPOINT is not set. When running the app in Docker Compose
-    # use 'http://wiremock:8080'. If running the app on the host and WireMock
-    # is also running on the host, set AZURE_OPENAI_ENDPOINT to 'http://localhost:8081'.
-        endpoint: ${AZURE_OPENAI_ENDPOINT:http://wiremock:8080}
+    # Local default targets host WireMock on port 8081.
+    # Docker Compose overrides this to use http://wiremock:8080.
+        endpoint: ${AZURE_OPENAI_ENDPOINT:http://localhost:8081}
         api-key: ${AZURE_OPENAI_API_KEY:mock-key}
         model: ${AZURE_OPENAI_MODEL:gpt-4o-mini}
 

@@ -9,7 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -58,19 +60,23 @@ public class ApplicationOperationsAgent {
     public void processExceptionIncident(String errorCode, String exceptionClass, String message, String stackTrace) {
         String correlationId = "app-exception-" + java.util.UUID.randomUUID();
 
-        EnrichedIncident enriched = new EnrichedIncident();
-        enriched.setShortDescription(errorCode + " - " + exceptionClass);
-        StringBuilder description = new StringBuilder();
-        if (message != null && !message.isEmpty()) {
-            description.append(message).append(System.lineSeparator());
+        DynatraceProblemDetail problem = new DynatraceProblemDetail();
+        problem.setTitle(errorCode + " - " + exceptionClass);
+        problem.setDescription(StringUtils.hasText(message) ? message : "No exception message available.");
+        problem.setAffectedEntityId("application");
+        problem.setRawJson(stackTrace);
+
+        List<String> logs = new ArrayList<>();
+        if (StringUtils.hasText(stackTrace)) {
+            String[] lines = stackTrace.split("\\R");
+            for (int i = 0; i < lines.length && i < 10; i++) {
+                if (StringUtils.hasText(lines[i])) {
+                    logs.add(lines[i]);
+                }
+            }
         }
-        if (stackTrace != null && !stackTrace.isEmpty()) {
-            description.append(System.lineSeparator()).append(stackTrace);
-        }
-        enriched.setDescription(description.toString());
-        enriched.setUrgency(2);
-        enriched.setImpact(2);
-        enriched.setCategory("application");
+
+        EnrichedIncident enriched = enrichmentService.enrich(problem, logs);
 
         ServiceNowIncidentRequest req = new ServiceNowIncidentRequest();
         req.setShort_description(enriched.getShortDescription());

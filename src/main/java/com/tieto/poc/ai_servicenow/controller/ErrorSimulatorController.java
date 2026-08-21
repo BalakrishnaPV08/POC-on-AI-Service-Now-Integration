@@ -1,9 +1,6 @@
 package com.tieto.poc.ai_servicenow.controller;
 
-import com.tieto.poc.ai_servicenow.exception.OptimisticLockSimulationException;
-import com.tieto.poc.ai_servicenow.exception.OrderNotFoundException;
 import com.tieto.poc.ai_servicenow.model.Order;
-import com.tieto.poc.ai_servicenow.service.AuditService;
 import com.tieto.poc.ai_servicenow.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +16,6 @@ import java.util.Map;
 public class ErrorSimulatorController {
 
     private final OrderService orderService;
-    private final AuditService auditService;
 
 
     // =========================================================
@@ -94,29 +90,26 @@ public class ErrorSimulatorController {
     }
 
 
-// =========================================================
-// SCENARIO #5
-// Optimistic Lock
-// =========================================================
+    // =========================================================
+    // Scenario #5 - Optimistic Lock
+    // =========================================================
+    @PostMapping("/optimistic-lock/{orderId}")
+    public ResponseEntity<Map<String, String>> optimisticLock(
+            @PathVariable String orderId) {
 
-    public void triggerOptimisticLock(String orderId) {
-
-        log.error(
-                "[SCENARIO-5] [ERROR_CODE=OPTIMISTIC_LOCK] " +
-                        "Triggering optimistic lock scenario orderId={}",
+        log.warn(
+                "[SIMULATOR] Triggering Scenario #5 - Optimistic Lock orderId={}",
                 orderId
         );
 
-        auditService.saveAudit(
-                orderId,
-                "OPTIMISTIC_LOCK",
-                "ERROR",
-                "Optimistic locking conflict simulated for order",
-                "OPTIMISTIC_LOCK"
-        );
+        orderService.triggerOptimisticLock(orderId);
 
-        throw new OptimisticLockSimulationException(
-                "Optimistic locking conflict for orderId=" + orderId
+        return ResponseEntity.ok(
+                Map.of(
+                        "scenario", "5",
+                        "message", "Optimistic lock scenario triggered",
+                        "orderId", orderId
+                )
         );
     }
 
