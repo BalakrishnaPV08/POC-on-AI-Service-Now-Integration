@@ -3,6 +3,7 @@ package com.tieto.poc.ai_servicenow.service;
 import com.tieto.poc.ai_servicenow.dto.OrderMessage;
 import com.tieto.poc.ai_servicenow.dto.OrderRequest;
 import com.tieto.poc.ai_servicenow.exception.DuplicateOrderException;
+import com.tieto.poc.ai_servicenow.exception.OptimisticLockSimulationException;
 import com.tieto.poc.ai_servicenow.exception.OrderNotFoundException;
 import com.tieto.poc.ai_servicenow.messaging.OrderProducer;
 import com.tieto.poc.ai_servicenow.model.AuditLog;
@@ -322,7 +323,7 @@ public class OrderService {
                 currentVersion
         );
 
-        throw new RuntimeException(
+        throw new OptimisticLockSimulationException(
                 "Simulated optimistic locking conflict " +
                         "for orderId=" + orderId
         );
