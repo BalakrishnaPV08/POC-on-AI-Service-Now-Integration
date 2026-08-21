@@ -6,9 +6,9 @@ spring:
   # PostgreSQL Database Configuration
   # ============================================================
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/tietopocdb}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:utkrisht16}
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   # ============================================================
@@ -52,29 +52,44 @@ spring:
 # ==============================================================
 # Azure OpenAI / external integrations
 # ==============================================================
+#  ai:
+#    azure:
+#      openai:
+    # Local default targets host WireMock on port 8081.
+    # Docker Compose overrides this to use http://wiremock:8080.
+#        endpoint: ${AZURE_OPENAI_ENDPOINT:http://localhost:8081}
+#        api-key: ${AZURE_OPENAI_API_KEY:mock-key}
+#        model: ${AZURE_OPENAI_MODEL:gpt-4o-mini}
+#        endpoint: ${AZURE_OPENAI_ENDPOINT:https://utkrishtkumar-9559-resource.services.ai.azure.com/openai/v1/chat/completions}
+#        api-key: ${AZURE_OPENAI_API_KEY:9wR3e4Pbl3LyNmWzrRZioFspG5xSWkC6u2RPtYaEXD8wf7fJzqbjJQQJ99CHACMsfrFXJ3w3AAAAACOGMSyy}
+#        model: ${AZURE_OPENAI_MODEL:poc-ai}
   ai:
     azure:
       openai:
-    # Local default targets host WireMock on port 8081.
-    # Docker Compose overrides this to use http://wiremock:8080.
-        endpoint: ${AZURE_OPENAI_ENDPOINT:http://localhost:8081}
-        api-key: ${AZURE_OPENAI_API_KEY:mock-key}
-        model: ${AZURE_OPENAI_MODEL:gpt-4o-mini}
+        endpoint: ${AZURE_OPENAI_ENDPOINT}
+        api-key: ${AZURE_OPENAI_API_KEY}
+        chat:
+          options:
+            deployment-name: ${AZURE_OPENAI_MODEL}
+            temperature: 1
 
 # ==============================================================
 # Dynatrace configuration  UXAEs8vS5MwpDwXuTiUb31SdFTGe5P7BCusFyydnZdw
 # ==============================================================
 dynatrace:
-  api-url: ${DT_API_URL:https://tpa39707.live.dynatrace.com}
-  api-token: ${DT_API_TOKEN:dt0c01.6C55J7SA55KE5QH4SHHETIZJ.YLUXF4YHGQ3HN6ZB4NVD7T6ULZEM5IEMGWRQMGIRYZQH5TABOTBSE4NI6MYYGNHQ}
+#  api-url: ${DT_API_URL:https://tpa39707.live.dynatrace.com}
+#  api-token: ${DT_API_TOKEN:dt0c01.6C55J7SA55KE5QH4SHHETIZJ.YLUXF4YHGQ3HN6ZB4NVD7T6ULZEM5IEMGWRQMGIRYZQH5TABOTBSE4NI6MYYGNHQ}
+  api-url: ${DT_API_URL}
+  api-token: ${DT_API_TOKEN}
+
 
 # ==============================================================
 # ServiceNow configuration
 # ==============================================================
 servicenow:
-  instance-url: ${SN_INSTANCE_URL:https://dev316191.service-now.com}
-  username: ${SN_USERNAME:admin}
-  password: ${SN_PASSWORD:y3W+jvQhI4Q-}
+  instance-url: ${SN_INSTANCE_URL}
+  username: ${SN_USERNAME}
+  password: ${SN_PASSWORD}
 
 # ==============================================================
 # Server Configuration

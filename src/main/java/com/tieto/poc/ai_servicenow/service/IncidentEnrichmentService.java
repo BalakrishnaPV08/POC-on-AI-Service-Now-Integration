@@ -43,7 +43,7 @@ public class IncidentEnrichmentService {
             RestTemplate restTemplate,
             @Value("${spring.ai.azure.openai.endpoint:}") String azureOpenAiEndpoint,
             @Value("${spring.ai.azure.openai.api-key:}") String azureOpenAiApiKey,
-            @Value("${spring.ai.azure.openai.model:gpt-4o-mini}") String azureOpenAiModel,
+            @Value("${spring.ai.azure.openai.chat.options.deployment-name:poc-ai}") String azureOpenAiModel,
             @Value("${app.enrichment.azure-api-version:2024-02-15-preview}") String azureOpenAiApiVersion,
             @Value("${app.enrichment.max-log-lines:5}") int maxLogLines
     ) {
@@ -281,7 +281,40 @@ public class IncidentEnrichmentService {
                 builder.append("- ").append(logLine).append("\n");
             }
         }
-        builder.append("\nReturn valid JSON only with fields: shortDescription, description, urgency, impact, category, recommendedActions.");
+        builder.append("""
+        
+        Return ONLY valid JSON. Do not include markdown or ```json fences.
+        
+        The JSON must contain exactly these fields:
+        {
+          "shortDescription": "string",
+          "description": "string",
+          "urgency": 1,
+          "impact": 1,
+          "category": "string",
+          "recommendedActions": ["string"]
+        }
+        
+        Rules:
+        - shortDescription must be a string.
+        - description must be a string.
+        - urgency MUST be an integer from 1 to 3.
+        - impact MUST be an integer from 1 to 3.
+        - category must be a string.
+        - recommendedActions MUST be an array of strings.
+        - Never return urgency as "low", "medium", or "high".
+        - Never return impact as "low", "medium", or "high".
+        
+        Urgency values:
+        1 = Low
+        2 = Medium
+        3 = High
+        
+        Impact values:
+        1 = Low
+        2 = Medium
+        3 = High
+        """);
         return builder.toString();
     }
 
